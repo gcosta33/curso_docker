@@ -1,1 +1,100 @@
-<h1>Frontend</h1>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+
+
+  <title>Cadastro Simples</title>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Cadastro Simples</h1>
+    <hr>
+    <div>
+      <input name="id" type="hidden" />
+      <div class="form-group">
+        <label for="Name"></label>
+        <input name="name" placeholder="Digite o nome" class="form-control">
+      </div>
+      <button class="btn btn-success mt-2" save>Salvar</button>
+    </div>
+
+    <table class="table table-sm" id="clients">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="clientsRows"></tbody>
+    </table>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.6.1.min.js"
+    integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script>
+    const API = 'http://localhost:3000'
+
+    const createButton = (label, type) => $('<button>').addClass(`btn btn-${type} mx-1`).html(label)
+
+    const renderRows = clients => {
+      const rows = clients.map(client => {
+        const updateButton = createButton('Atualizar', 'warning')
+        updateButton.click(() => loadCLient(client))
+        const deleteButton = createButton('Deletar', 'danger')
+        deleteButton.click(() => removeClient(client))
+        return $('<tr>')
+          .append($('<td>').append(client.name))
+          .append($('<td>').append(updateButton).append(deleteButton))
+      })
+      $('#clientsRows').html(rows)
+    }
+
+    const loadCLient = client => {
+      $('[name=id]').val(client._id)
+      $('[name=name]').val(client.name)
+    }
+
+    const removeClient = client => {
+      $.ajax({
+        method: 'DELETE',
+        url: `${API}/clients/${client._id}`,
+        success: getClient
+      })
+    }
+
+    const getClient = () => {
+      $('[name=id]').val('')
+      $('[name=name]').val('')
+      $.ajax({
+        url: `${API}/clients`,
+        success: clients => {
+          renderRows(clients)
+        }
+      })
+    }
+
+    const saveClient = () => {
+      const _id = $('[name=id]').val()
+      const name = $('[name=name]').val()
+      $.ajax({
+        method: _id ? 'PUT' : 'POST',
+        url: `${API}/clients/${_id}`,
+        data: _id ? { _id, name } : { name },
+        success: getClient
+      })
+    }
+
+    $(() => {
+      getClient()
+      $('[save]').click(saveClient)
+    })
+  </script>
+</body>
+
+</html>
